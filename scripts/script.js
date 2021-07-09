@@ -1,16 +1,12 @@
 const headerCityButton = document.querySelector('.header__city-button');
 const cartListGoods = document.querySelector('.cart__list-goods');
 const cartTotalCost = document.querySelector('.cart__total-cost');
+const subheaderCart = document.querySelector('.subheader__cart');
+const cartOverlay = document.querySelector('.cart-overlay');
 
 let hash = location.hash.substring(1);
 
 headerCityButton.textContent = localStorage.getItem('lomoda-location') || 'Ваш город?';
-
-headerCityButton.addEventListener('click', () => {
-  const city = prompt('Укажите ваш город');
-  headerCityButton.textContent = city;
-  localStorage.setItem('lomoda-location', city);
-});
 
 const getLocalStorage = () => JSON?.parse(localStorage.getItem('cart-lomoda')) || [];
 const setLocalStorage = data => localStorage.setItem('cart-lomoda', JSON.stringify(data));
@@ -47,13 +43,6 @@ const deleteItemCart = id => {
   setLocalStorage(newCarItems);
 };
 
-cartListGoods.addEventListener('click', e => {
-  if (e.target.matches('.btn-delete')) {
-    deleteItemCart(e.target.dataset.id);
-    renderCard();
-  }
-});
-
 //block scroll
 
 const disableScroll = () => {
@@ -73,17 +62,13 @@ const disableScroll = () => {
 };
 
 const enableScroll = () => {
-  document.disableScroll = false;
   document.body.style.cssText = '';
   window.scroll({
-    top: document.body.dbScrollY
-  });
+    top: document.body.dbScrollY,
+  })
 };
 
 //modal window
-
-const subheaderCart = document.querySelector('.subheader__cart');
-const cartOverlay = document.querySelector('.cart-overlay');
 
 const cartModalOpen = () => {
   cartOverlay.classList.add('cart-overlay-open');
@@ -96,11 +81,10 @@ const cartModalClose = () => {
   enableScroll();
 };
 
-
 //request database
 
-const getData = async (server) => {
-  const data = await fetch(server);
+const getData = async () => {
+  const data = await fetch('db.json');
 
   if (data.ok) {
     return data.json();
@@ -110,7 +94,7 @@ const getData = async (server) => {
 };
 
 const getGoods = (callback, prop, value) => {
-  getData('db.json')
+  getData()
       .then(data => {
         if (value) {
           callback(data.filter(item => item[prop] === value))
@@ -132,6 +116,18 @@ cartOverlay.addEventListener('click', event => {
   }
 });
 
+headerCityButton.addEventListener('click', () => {
+  const city = prompt('Укажите ваш город');
+  headerCityButton.textContent = city;
+  localStorage.setItem('lomoda-location', city);
+});
+
+cartListGoods.addEventListener('click', e => {
+  if (e.target.matches('.btn-delete')) {
+    deleteItemCart(e.target.dataset.id);
+    renderCard();
+  }
+});
 
 //categories page
 
@@ -198,7 +194,7 @@ try {
 
 try {
   if (!document.querySelector('.card-good')) {
-    throw 'This is not card-good page'
+    throw 'This is not card-good page';
   }
   const cardGoodImage = document.querySelector('.card-good__image');
   const cardGoodBrand = document.querySelector('.card-good__brand');
@@ -214,14 +210,14 @@ try {
   const generateList = data => data.reduce((html, item, i) => html +
       `<li class="card-good__select-item" data-id="${i}">${item}</li>`, '');
 
-  const renderCardGood = ([{id, cost, color, brand, names, sizes, photo}]) => {
+  const renderCardGood = ([{id, brand, name, cost, color, sizes, photo}]) => {
 
-    const data = {brand, cost, names, id};
+    const data = {brand, name, cost, id};
 
     cardGoodImage.src = `goods-image/${photo}`;
-    cardGoodImage.alt = `${brand}  ${names}`;
+    cardGoodImage.alt = `${brand}  ${name}`;
     cardGoodBrand.textContent = brand;
-    cardGoodTitle.textContent = names;
+    cardGoodTitle.textContent = name;
     cardGoodPrice.textContent = `${cost} ₽`;
     if (color) {
       cardGoodColor.textContent = color[0];
@@ -269,15 +265,15 @@ try {
     item.addEventListener('click', e => {
       const target = e.target;
 
-      if (target.closest('.card-good_select')) {
-        target.classList.toggle('card-good_select__open');
+      if (target.closest('.card-good__select')) {
+        target.classList.toggle('card-good__select__open');
       }
 
-      if (target.closest('card-good__select__item')) {
-        const cardGoodSelect = item.querySelector('.card-good_select');
+      if (target.closest('card-good__select-item')) {
+        const cardGoodSelect = item.querySelector('.card-good__select');
         cardGoodSelect.textContent = target.textContent;
         cardGoodSelect.dataset.id = target.dataset.id;
-        cardGoodSelect.classList.remove('card-good_select__open');
+        cardGoodSelect.classList.remove('card-good__select__open');
       }
     });
   });
